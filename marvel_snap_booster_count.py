@@ -24,11 +24,14 @@ with open(path, encoding="utf-8-sig") as json_file:
 	for card in data['ServerState']['CardDefStats']['Stats']:
 		card_name = card
 
-		# Either don't own card, or is non-collectible card
 		if 'Boosters' not in data['ServerState']['CardDefStats']['Stats'][card]:
-			continue
+			if 'BoostersLifetime' not in data['ServerState']['CardDefStats']['Stats'][card]:
+				continue # Either don't own card, or is non-collectible card
+			else:
+				current_boosters = 0 # Own the card, but have 0 current boosters
+		else:
+			current_boosters = data['ServerState']['CardDefStats']['Stats'][card]['Boosters']
 
-		current_boosters = data['ServerState']['CardDefStats']['Stats'][card]['Boosters']
 		lifetime_boosters = data['ServerState']['CardDefStats']['Stats'][card]['BoostersLifetime']
 		if 'InfinitySplitCount' in data['ServerState']['CardDefStats']['Stats'][card]:
 			infinity_splits = data['ServerState']['CardDefStats']['Stats'][card]['InfinitySplitCount']
@@ -44,4 +47,7 @@ with open('marvel_snap_booster_count.csv', 'w', newline='') as csv_file:
 	csv_writer = csv.writer(csv_file)
 	csv_writer.writerow(["Card", "Boosters", "Lifetime Boosters", "Total Variants", "Infinity Splits"])
 	for card in all_cards:
-		csv_writer.writerow([card, all_cards[card]['current_boosters'], all_cards[card]['lifetime_boosters'], len(all_cards[card]['variants']), all_cards[card]['infinity_splits']])
+		if 'current_boosters' in all_cards[card]: 
+			csv_writer.writerow([card, all_cards[card]['current_boosters'], all_cards[card]['lifetime_boosters'], len(all_cards[card]['variants']), all_cards[card]['infinity_splits']])
+		else:
+			csv_writer.writerow([card, 0, 0, len(all_cards[card]['variants']), 0]) # Own the card, but never gained a booster before
